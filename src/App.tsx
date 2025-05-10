@@ -7,7 +7,6 @@ import ThemeSwitcher from './components/ThemeSwitcher';
 function App() {
   const defaultUsername = "devranbir";
   const [username, setUsername] = useState(defaultUsername);
-  const [showUserPrompt, setShowUserPrompt] = useState(false);
 
   const handleUserSwitch = () => {
     const newUsername = prompt("Enter GitHub username to view their portfolio:");
