@@ -1,0 +1,206 @@
+.project-card {
+  background-color: var(--background-main);
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  box-shadow: var(--box-shadow);
+  transition: transform var(--transition-speed) ease, 
+              box-shadow var(--transition-speed) ease,
+              border-color var(--transition-speed) ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--primary-light);
+  display: flex;
+  flex-direction: column;
+  height: 85%;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--sidebar-gradient);
+  opacity: 0.9;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color);
+}
+
+.project-card h3 {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  color: var(--text-dark);
+  font-weight: 700;
+  transition: color var(--transition-speed) ease;
+}
+
+.project-card p {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+  transition: color var(--transition-speed) ease;
+}
+
+.project-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.language {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: background-color var(--transition-speed) ease,
+              color var(--transition-speed) ease;
+}
+
+.language::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  margin-right: 0.5rem;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.topic {
+  background-color: var(--background-light);
+  color: var(--text-light);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color var(--transition-speed) ease,
+              color var(--transition-speed) ease;
+}
+
+.project-actions {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: auto;
+}
+
+.github-button, .demo-button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-speed) ease, 
+              box-shadow var(--transition-speed) ease,
+              background-color var(--transition-speed) ease,
+              color var(--transition-speed) ease,
+              opacity var(--transition-speed) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex: 1;
+}
+
+.github-button {
+  background-color: var(--background-light);
+  color: var(--text-light);
+  border: 1px solid var(--primary-light);
+}
+
+.github-button:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: var(--primary-color);
+}
+
+.demo-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.demo-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.demo-button.active {
+  background-color: var(--text-dark);
+}
+
+/* Terminal styling */
+.terminal-wrapper {
+  margin-top: 1rem;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--text-dark);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  transition: all var(--transition-speed) ease;
+}
+
+.terminal-header {
+  background-color: var(--text-dark);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.terminal-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.terminal-close-button {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.terminal-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.terminal-container {
+  background-color: var(--text-dark);
+  padding: 0;
+  height: 250px;
+  width: 100%;
+  overflow: auto;
+  transition: background-color var(--transition-speed) ease;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}

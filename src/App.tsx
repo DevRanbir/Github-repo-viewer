@@ -1,24 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import PortfolioContent from './components/PortfolioContent';
+import ProfileSidebar from './components/ProfileSidebar';
+import ThemeSwitcher from './components/ThemeSwitcher';
 
 function App() {
+  const defaultUsername = "devranbir";
+  const [username, setUsername] = useState(defaultUsername);
+  const [showUserPrompt, setShowUserPrompt] = useState(false);
+
+  const handleUserSwitch = () => {
+    const newUsername = prompt("Enter GitHub username to view their portfolio:");
+    if (newUsername) {
+      setUsername(newUsername.trim());
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="user-switch">
+        <button onClick={handleUserSwitch} className="switch-user-btn">
+          🔎
+        </button>
+      </div>
+      <div className="split-layout">
+        <ProfileSidebar username={username} />
+        <main>
+          <PortfolioContent username={username} />
+        </main>
+      </div>
+      <ThemeSwitcher />
     </div>
   );
 }
