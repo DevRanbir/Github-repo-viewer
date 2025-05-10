@@ -1,0 +1,9 @@
+{
+  "short_name": "profio git",
+  "name": "profio git",
+
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
