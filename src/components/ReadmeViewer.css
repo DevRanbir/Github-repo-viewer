@@ -1,5 +1,6 @@
 /* ReadmeViewer.css - Enhanced for responsiveness and visual appeal */
 
+/* Base PC Styles - Unchanged from original */
 .readme-viewer {
   height: 100%;
   overflow: auto;
@@ -71,7 +72,7 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* Typography styling */
+/* Typography styling - PC sizes preserved */
 .readme-content h1,
 .readme-content h2,
 .readme-content h3,
@@ -86,34 +87,35 @@
   font-weight: 700;
 }
 
+/* PC heading sizes kept intact with media query that only impacts smaller screens */
 .readme-content h1 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: 2.5rem;
   border-bottom: 2px solid var(--primary-light);
   padding-bottom: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
 .readme-content h2 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: 2rem;
   border-bottom: 1px solid var(--primary-light);
   padding-bottom: 0.5rem;
   margin-top: 2.5rem;
 }
 
 .readme-content h3 {
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-size: 1.75rem;
 }
 
 .readme-content h4 {
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-size: 1.5rem;
 }
 
 .readme-content h5 {
-  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  font-size: 1.25rem;
 }
 
 .readme-content h6 {
-  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  font-size: 1.1rem;
   color: var(--text-light);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -122,7 +124,7 @@
 .readme-content p {
   margin: 1.25rem 0;
   color: var(--text-dark);
-  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  font-size: 1.05rem;
 }
 
 /* YouTube video links grid layout */
@@ -142,14 +144,6 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin: 1.5rem 0;
-}
-
-/* Responsive adjustments for video links */
-@media (max-width: 768px) {
-  .readme-content p a[href*="youtube.com/watch?"]{
-    width: 100%;
-    margin: 0.5rem 0;
-  }
 }
 
 /* Links styling */
@@ -295,15 +289,6 @@
   z-index: 1;
 }
 
-/* Add horizontal scroll for tables on small screens */
-@media (max-width: 768px) {
-  .readme-content table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-}
-
 /* Horizontal rule */
 .readme-content hr {
   border: none;
@@ -339,14 +324,6 @@
 .readme-content ul ol,
 .readme-content ol ul {
   margin: 0.75rem 0 0.75rem 0;
-}
-
-/* Make lists responsive */
-@media (max-width: 576px) {
-  .readme-content ul,
-  .readme-content ol {
-    padding-left: 1.25rem;
-  }
 }
 
 /* SVG enhancements */
@@ -405,70 +382,6 @@
   margin-right: 0.5rem;
 }
 
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .readme-content {
-    padding: 1rem 0.75rem;
-  }
-  
-  .readme-viewer {
-    padding: 0 0.5rem;
-  }
-  
-  .readme-content blockquote {
-    padding: 0.75rem 1rem;
-  }
-}
-
-/* Specific adjustments for very small screens */
-@media (max-width: 480px) {
-  .readme-content h1 {
-    font-size: 1.5rem;
-  }
-  
-  .readme-content h2 {
-    font-size: 1.3rem;
-  }
-  
-  .readme-content {
-    font-size: 0.95rem;
-  }
-}
-
-/* Print styles */
-@media print {
-  .readme-viewer {
-    height: auto;
-    overflow: visible;
-  }
-  
-  .readme-content {
-    padding: 0;
-  }
-  
-  .readme-content a {
-    color: #000;
-    text-decoration: underline;
-  }
-  
-  .readme-content img {
-    max-width: 80%;
-    page-break-inside: avoid;
-  }
-  
-  .readme-content pre,
-  .readme-content blockquote {
-    page-break-inside: avoid;
-  }
-  
-  .readme-content h1, 
-  .readme-content h2, 
-  .readme-content h3, 
-  .readme-content h4 {
-    page-break-after: avoid;
-  }
-}
-
 /* Dark mode specific adjustments */
 [data-theme="dark"] .readme-content pre {
   background-color: #1f2937;
@@ -506,4 +419,191 @@
   max-width: 100%;
   border: 1px solid var(--primary-light);
   border-radius: var(--border-radius);
+}
+
+/* ======================================
+   MOBILE OPTIMIZATION - PC STAYS THE SAME
+   ====================================== */
+
+/* Mobile-specific adjustments that won't affect desktop */
+@media (max-width: 768px) {
+  .readme-content {
+    padding: 1rem 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .readme-viewer {
+    padding: 0 0.5rem;
+  }
+  
+  .readme-content h1 {
+    font-size: 1.75rem;
+  }
+  
+  .readme-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .readme-content h3 {
+    font-size: 1.25rem;
+  }
+  
+  .readme-content h4 {
+    font-size: 1.1rem;
+  }
+  
+  .readme-content h5 {
+    font-size: 1rem;
+  }
+  
+  .readme-content h6 {
+    font-size: 0.9rem;
+  }
+  
+  .readme-content p {
+    font-size: 0.95rem;
+  }
+  
+  .readme-content blockquote {
+    padding: 0.75rem 1rem;
+  }
+  
+  .readme-content ul,
+  .readme-content ol {
+    padding-left: 1.25rem;
+  }
+  
+  /* Make YouTube video links full width on mobile */
+  .readme-content p a[href*="youtube.com/watch?"] {
+    width: 100%;
+    margin: 0.5rem 0;
+  }
+  
+  /* Table scrolling for mobile */
+  .readme-content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Specific adjustments for very small screens */
+@media (max-width: 480px) {
+  .readme-content {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .readme-content h1 {
+    font-size: 1.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .readme-content h2 {
+    font-size: 1.3rem;
+    padding-bottom: 0.4rem;
+  }
+  
+  .readme-content h3 {
+    font-size: 1.15rem;
+  }
+  
+  .readme-content h4 {
+    font-size: 1.05rem;
+  }
+  
+  .readme-content pre {
+    padding: 1rem;
+    margin: 1.25rem 0;
+  }
+  
+  .readme-content code {
+    font-size: 0.85em;
+  }
+  
+  .readme-loading {
+    height: 250px;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .readme-error {
+    padding: 1.25rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .readme-viewer {
+    height: auto;
+    overflow: visible;
+  }
+  
+  .readme-content {
+    padding: 0;
+  }
+  
+  .readme-content a {
+    color: #000;
+    text-decoration: underline;
+  }
+  
+  .readme-content img {
+    max-width: 80%;
+    page-break-inside: avoid;
+  }
+  
+  .readme-content pre,
+  .readme-content blockquote {
+    page-break-inside: avoid;
+  }
+  
+  .readme-content h1, 
+  .readme-content h2, 
+  .readme-content h3, 
+  .readme-content h4 {
+    page-break-after: avoid;
+  }
+}
+
+/* Orientation change optimization */
+@media screen and (orientation: portrait) and (max-width: 768px) {
+  .readme-viewer {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+  
+  .readme-content img {
+    max-width: 95%;
+  }
+}
+
+/* Target iOS devices for specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific adjustments */
+  @media (max-width: 768px) {
+    .readme-content {
+      -webkit-text-size-adjust: 100%; /* Prevent iOS font size adjustment */
+    }
+    
+    .readme-content input[type="checkbox"] {
+      transform: scale(1.2); /* Make checkboxes more tappable */
+    }
+  }
+}
+
+/* Optimize for high pixel-density mobile screens */
+@media (-webkit-min-device-pixel-ratio: 2) and (max-width: 768px), 
+       (min-resolution: 192dpi) and (max-width: 768px) {
+  .readme-content code {
+    padding: 0.25rem 0.45rem; /* Slightly larger touch targets */
+  }
+  
+  .readme-content summary {
+    padding: 0.6rem; /* Better tappable area */
+  }
 }
