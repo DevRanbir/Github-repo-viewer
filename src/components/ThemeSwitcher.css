@@ -41,7 +41,7 @@
     background: var(--background-main);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    padding: 0.75rem;
+    padding: 0.75rem 0.2rem 0.25rem 0.2rem;
     transform-origin: bottom left;
 }
 
@@ -100,7 +100,7 @@
 .theme-button:hover .theme-name {
     width: auto;
     opacity: 1;
-    left: 2.5rem;
+    left: 3.5rem;
 }
 
 @media (max-width: 768px) {

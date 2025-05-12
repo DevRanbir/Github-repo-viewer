@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './RepoContentViewer.css';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -21,6 +21,13 @@ interface RepoContent {
   url?: string;
 }
 
+interface Branch {
+  name: string;
+  commit: {
+    sha: string;
+  };
+}
+
 const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
   username,
   repoName,
@@ -34,29 +41,42 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
   const [selectedFile, setSelectedFile] = useState<RepoContent | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [currentBranch, setCurrentBranch] = useState<string>('main');
+  const [showBranchSelector, setShowBranchSelector] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchRepoContents();
+  const fetchBranches = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `https://api.github.com/repos/${username}/${repoName}/branches`,
+        { headers: getAuthHeaders() }
+      );
+      if (!response.ok) throw new Error('Failed to fetch branches');
+      const data = await response.json();
+      setBranches(data);
+      
+      // Set default branch if we don't have one yet
+      if (currentBranch === 'main' && data.length > 0) {
+        // Check if 'main' or 'master' exists, otherwise use the first branch
+        const defaultBranch = data.find((b: Branch) => b.name === 'main') || 
+                             data.find((b: Branch) => b.name === 'master') || 
+                             data[0];
+        setCurrentBranch(defaultBranch.name);
+      }
+    } catch (err) {
+      console.error('Error fetching branches:', err);
+      // Don't set error state here to avoid blocking content display
     }
-  }, [isOpen, currentPath]);
+  }, [username, repoName, currentBranch]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('github_token');
-    return {
-      Accept: 'application/vnd.github.v3+json',
-      ...(token && { Authorization: `Bearer ${token}` })
-    };
-  };
-
-  const fetchRepoContents = async () => {
+  const fetchRepoContents = useCallback(async () => {
     try {
       setLoading(true);
       setSelectedFile(null);
       setFileContent('');
       
       const response = await fetch(
-        `https://api.github.com/repos/${username}/${repoName}/contents/${currentPath}`,
+        `https://api.github.com/repos/${username}/${repoName}/contents/${currentPath}?ref=${currentBranch}`,
         { headers: getAuthHeaders() }
       );
       if (!response.ok) throw new Error('Failed to fetch repository contents');
@@ -79,46 +99,76 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
     } finally {
       setLoading(false);
     }
+  }, [username, repoName, currentPath, currentBranch]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchBranches();
+      fetchRepoContents();
+    }
+  }, [isOpen, fetchBranches, fetchRepoContents]);
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('github_token');
+    return {
+      Accept: 'application/vnd.github.v3+json',
+      ...(token && { Authorization: `Bearer ${token}` })
+    };
   };
+
 
   const fetchFileContent = async (file: RepoContent) => {
     try {
       setLoading(true);
-      const response = await fetch(file.url!, {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) throw new Error('Failed to fetch file content');
-      
+  
+      let content = '';
+  
       try {
-        // For markdown files, get raw content
-        if (file.name.toLowerCase().endsWith('.md')) {
-          const content = await response.text();
-          setFileContent(content);
-        } else {
-          // For other files, handle potential base64 encoding
-          const data = await response.json();
-          if (data.encoding === 'base64' && data.content) {
-            // Decode base64 content
-            const decodedContent = atob(data.content.replace(/\n/g, ''));
-            setFileContent(decodedContent);
-          } else {
-            // Fallback for non-encoded content
-            setFileContent(data.content || '');
-          }
+        // Try to fetch the file details as JSON to check the encoding
+        const response = await fetch(file.url!, {
+          headers: getAuthHeaders()
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Failed to fetch file details for ${file.name}`);
         }
-        
-        setSelectedFile(file);
-      } catch (parseErr) {
-        // If there's an error parsing the content, don't show the file
-        setError(`Unable to display this file: ${file.name}`);
-        setSelectedFile(null);
+  
+        const data = await response.json();
+  
+        // Check if the content is base64 encoded
+        if (data.encoding === 'base64' && data.content) {
+          // Decode base64 content
+          content = atob(data.content.replace(/\n/g, ''));
+        } else if (typeof data.content === 'string') {
+          // If not base64, assume it's plain text content directly in the 'content' field
+          content = data.content;
+        } else {
+          content = `Could not decode or retrieve content for ${file.name}`;
+          console.warn(`Unexpected content format for ${file.name}:`, data);
+        }
+      } catch (jsonError) {
+        // If fetching as JSON fails, assume it's a plain text file
+        console.warn(`Failed to parse response as JSON for ${file.name}. Assuming plain text.`);
+        const textResponse = await fetch(file.url!, {
+          headers: getAuthHeaders()
+        });
+        if (!textResponse.ok) {
+          throw new Error(`Failed to fetch plain text content for ${file.name}`);
+        }
+        content = await textResponse.text();
       }
+  
+      setFileContent(content);
+      setSelectedFile(file);
+  
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error fetching file content');
+      setError(err instanceof Error ? err.message : `Error fetching or processing ${file.name}`);
+      setSelectedFile(null);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const navigateToFolder = (path: string) => {
     setCurrentPath(path);
@@ -158,43 +208,66 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  const toggleBranchSelector = () => {
+    setShowBranchSelector(!showBranchSelector);
+  };
+
+  const changeBranch = (branchName: string) => {
+    setCurrentBranch(branchName);
+    setCurrentPath('');
+    setSelectedFile(null);
+    setFileContent('');
+    setShowBranchSelector(false);
+  };
+
   if (!isOpen) return null;
 
   const processMarkdownContent = (content: string) => {
     // Replace relative image paths with absolute GitHub URLs
     return content.replace(
-      /!\[([^\]]*)\]\((?!http)([^\)]*)\)/g,
-      `![$1](https://raw.githubusercontent.com/${username}/${repoName}/main/$2)`
+      /!\[([^\]]*)\]\((?!http)([^)]*)\)/g,
+      `![$1](https://raw.githubusercontent.com/${username}/${repoName}/${currentBranch}/$2)`
     );
+  };
+
+  const copyFileContent = () => {
+    navigator.clipboard.writeText(fileContent);
   };
 
   const renderFileContent = () => {
     if (!selectedFile) return null;
 
-    if (selectedFile.name.toLowerCase().endsWith('.md')) {
-      return (
-        <div className="markdown-content">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              img: ({ node, ...props }) => (
-                <img style={{ maxWidth: '100%' }} {...props} alt={props.alt || ''} />
-              ),
-              a: ({ node, ...props }) => (
-                <a target="_blank" rel="noopener noreferrer" {...props} />
-              )
-            }}
-          >
-            {processMarkdownContent(fileContent)}
-          </ReactMarkdown>
-        </div>
-      );
-    }
-
     return (
-      <pre>
-        <code>{fileContent}</code>
-      </pre>
+      <div className="file-content">
+        {selectedFile.name.toLowerCase().endsWith('.md') ? (
+          <div className="markdown-content">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                img: ({ node, ...props }) => (
+                  <img style={{ maxWidth: '100%' }} {...props} alt={props.alt || ''} />
+                ),
+                a: ({ node, ...props }) => (
+                  <a 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    {...props}
+                    aria-label={props.href || 'Link'}
+                  >
+                    {props.children || props.href}
+                  </a>
+                )
+              }}
+            >
+              {processMarkdownContent(fileContent)}
+            </ReactMarkdown>
+          </div>
+        ) : (
+          <pre>
+            <code>{fileContent}</code>
+          </pre>
+        )}
+      </div>
     );
   };
 
@@ -217,6 +290,36 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
               </svg>
             </button>
             <h2>{repoName}</h2>
+            <div className="branch-selector">
+              <button onClick={toggleBranchSelector} className="branch-button">
+                <svg className="branch-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                  <path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"></path>
+                </svg>
+                <span>{currentBranch}</span>
+                <svg className="dropdown-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                  <path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"></path>
+                </svg>
+              </button>
+              {showBranchSelector && (
+                <div className="branch-dropdown">
+                  <ul>
+                    {branches.map(branch => (
+                      <li key={branch.commit.sha}>
+                        <button 
+                          onClick={() => changeBranch(branch.name)}
+                          className={branch.name === currentBranch ? 'active' : ''}
+                        >
+                          <svg className="branch-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                            <path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"></path>
+                          </svg>
+                          {branch.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
             {currentPath && <span className="path-indicator">/{currentPath}</span>}
           </div>
           <button onClick={onClose} className="close-button">&times;</button>
@@ -227,8 +330,8 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
             <div className="content-navigation">
               {(currentPath || error) && (
                 <button onClick={goBack} className="back-button">
-                  <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                    <path d="M6.78 3.22a.75.75 0 0 0-1.06 1.06L8.94 7.5 5.72 10.72a.75.75 0 1 0 1.06 1.06L9.56 8l3.78 3.78a.75.75 0 1 0 1.06-1.06L10.62 7.5l3.78-3.78a.75.75 0 0 0-1.06-1.06L9.56 7.5 6.78 3.22z"/>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="arcs">
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>
                   </svg>
                   {!isSidebarCollapsed && <span>Back</span>}
                 </button>
@@ -261,7 +364,6 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
                               {!isSidebarCollapsed && (
                                 <span>
                                   {item.name}
-                                  {/* Check if folder is empty by making a request when needed */}
                                 </span>
                               )}
                             </>
@@ -285,7 +387,20 @@ const RepoContentViewer: React.FC<RepoContentViewerProps> = ({
           <div className="content-display">
             {selectedFile ? (
               <div className="file-content">
-                <h3>{selectedFile.name}</h3>
+                <h3>
+                <button 
+                  onClick={copyFileContent} 
+                  className="copy-button"
+                  title="Copy file contents"
+                  aria-label="Copy file contents"
+                >
+                  <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
+                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
+                  </svg>
+                </button>
+                {selectedFile.name}
+                </h3>
                 {renderFileContent()}
               </div>
             ) : (
