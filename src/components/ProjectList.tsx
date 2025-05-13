@@ -5,13 +5,16 @@ import {
   fetchUserRepositories, 
   checkRepoContents, 
   Repository, 
-  detectProgrammingLanguages 
+  detectProgrammingLanguages,
+  checkForPackageJson
 } from '../services/github';
 import './ProjectList.css';
 
 interface Project extends Repository {
   hasHtmlFile: boolean;
   primaryLanguage?: string;
+  hasPackageJson: boolean;
+  packageJsonHomepage: string | null;
 }
 
 interface ProjectListProps {
@@ -59,24 +62,28 @@ const ProjectList: React.FC<ProjectListProps> = ({ username }) => {
         const enhancedRepos = await Promise.all(
           filteredRepos.map(async (repo: Repository) => {
             try {
-              // Check for HTML files in parallel with detecting languages
-              const [hasHtml, primaryLanguage] = await Promise.all([
+              // Check for HTML files, languages, and package.json in parallel
+              const [hasHtml, primaryLanguage, packageJsonInfo] = await Promise.all([
                 checkRepoContents(username, repo.name),
-                detectProgrammingLanguages(username, repo.name)
+                detectProgrammingLanguages(username, repo.name),
+                checkForPackageJson(username, repo.name)
               ]);
               
               return {
                 ...repo,
                 hasHtmlFile: hasHtml,
-                primaryLanguage: primaryLanguage || repo.language || 'Unknown'
+                primaryLanguage: primaryLanguage || repo.language || 'Unknown',
+                hasPackageJson: packageJsonInfo.hasPackageJson,
+                packageJsonHomepage: packageJsonInfo.packageJsonHomepage
               };
             } catch (err) {
               console.warn(`Error processing repo ${repo.name}:`, err);
-              // Return basic info if extended info fails
               return {
                 ...repo,
                 hasHtmlFile: false,
-                primaryLanguage: repo.language || 'Unknown'
+                primaryLanguage: repo.language || 'Unknown',
+                hasPackageJson: false,
+                packageJsonHomepage: null
               };
             }
           })
@@ -246,6 +253,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ username }) => {
               updatedAt={project.updated_at}
               stargazers={project.stargazers_count}
               forks={project.forks_count}
+              hasPackageJson={project.hasPackageJson}
+              packageJsonHomepage={project.packageJsonHomepage}
             />
           ))}
         </div>

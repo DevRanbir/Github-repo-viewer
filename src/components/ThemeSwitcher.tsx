@@ -31,8 +31,8 @@ const ThemeSwitcher: React.FC = () => {
   };
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('light-theme', savedTheme);
   }, []);
 
   useEffect(() => {

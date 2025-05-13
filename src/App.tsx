@@ -46,12 +46,17 @@ function App() {
         <div className="username-modal-overlay">
           <div className="username-modal">
             <form onSubmit={handleSubmit}>
+              <div className="form-text">
+                Hello visitor, you are viewing the git user {username}!
+                <br />
+                Switch to another GitHub user by entering their username in the input below.
+              </div>
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="Enter GitHub username"
                 defaultValue={username}
-                onFocus={(e) => e.target.select()} // Add this line to handle focus events
+                onFocus={(e) => e.target.select()}
               />
               <div className="modal-buttons">
                 <button type="submit">Switch User</button>

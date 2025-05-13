@@ -14,6 +14,8 @@ interface ProjectCardProps {
   updatedAt: string;
   stargazers: number;
   forks: number;
+  hasPackageJson?: boolean;
+  packageJsonHomepage: string | null | undefined;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -25,13 +27,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   topics,
   username,
   hasHtmlFile,
+  hasPackageJson,
+  packageJsonHomepage,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isRepoViewerOpen, setIsRepoViewerOpen] = useState(false);
   
-  // Function to check if a website URL exists based on GitHub Pages pattern
+  // Function to check if a website URL exists based on GitHub Pages pattern or package.json
   const getGitHubPagesUrl = () => {
-    if (homepage) return homepage;
+    if (homepage) return homepage.trim().replace(/`/g, '');
+    if (packageJsonHomepage) return packageJsonHomepage.trim().replace(/`/g, '');
     if (hasHtmlFile) return `https://${username}.github.io/${name}/`;
     return null;
   };

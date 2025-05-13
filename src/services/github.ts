@@ -90,6 +90,60 @@ export const handleApiError = (response: Response): void => {
   throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
 };
 
+export const checkForPackageJson = async (username: string, repoName: string): Promise<{ hasPackageJson: boolean, packageJsonHomepage: string | null }> => {
+  try {
+    // First, fetch all branches
+    const branchesResponse = await fetch(
+      `${GITHUB_API_BASE}/repos/${username}/${repoName}/branches`,
+      { headers: createHeaders() }
+    );
+    
+    if (!branchesResponse.ok) {
+      throw new Error(`Failed to fetch branches: ${branchesResponse.status}`);
+    }
+    
+    const branches = await branchesResponse.json();
+    
+    // Check package.json in each branch
+    for (const branch of branches) {
+      try {
+        const response = await fetch(
+          `${GITHUB_API_BASE}/repos/${username}/${repoName}/contents/package.json?ref=${branch.name}`,
+          { headers: createHeaders() }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          const content = JSON.parse(atob(data.content));
+          
+          if (content.homepage) {
+            return {
+              hasPackageJson: true,
+              packageJsonHomepage: content.homepage.trim().replace(/`/g, '')
+            };
+          }
+        }
+      } catch (branchError) {
+        console.warn(`Error checking package.json in branch ${branch.name}:`, branchError);
+        // Continue checking other branches
+      }
+    }
+    
+    // If we've checked all branches and found nothing
+    return {
+      hasPackageJson: false,
+      packageJsonHomepage: null
+    };
+    
+  } catch (error) {
+    console.warn('Error checking for package.json:', error);
+    return {
+      hasPackageJson: false,
+      packageJsonHomepage: null
+    };
+  }
+};
+
 export const fetchUserRepositories = async (username: string): Promise<Repository[]> => {
   try {
     const response = await fetch(`${GITHUB_API_BASE}/users/${username}/repos?sort=updated&per_page=100`, {
@@ -99,12 +153,11 @@ export const fetchUserRepositories = async (username: string): Promise<Repositor
     if (!response.ok) {
       handleApiError(response);
       
-      // If handleApiError sets a new token, retry the request
       if (response.status === 401 || response.status === 403) {
         return fetchUserRepositories(username);
       }
       
-      return []; // Fallback empty array
+      return [];
     }
     
     const repos = await response.json() as Repository[];

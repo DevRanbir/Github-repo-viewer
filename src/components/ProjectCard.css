@@ -247,4 +247,5 @@ Z
 
 .view-contents-button:hover {
   background-color: var(--primary-color-dark);
+  color:var(--text-light)
 }
