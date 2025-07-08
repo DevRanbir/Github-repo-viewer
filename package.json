@@ -2,7 +2,7 @@
   "name": "portfoliopage",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://devranbir.github.io",
+  "homepage": "https://devranbir.github.io/Github-repo-viewer",
   "dependencies": {
     "@octokit/rest": "^21.1.1",
     "@testing-library/dom": "^10.4.0",
